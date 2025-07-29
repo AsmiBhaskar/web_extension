@@ -21,6 +21,17 @@ function loadContacts() {
   });
 }
 
+// --- Real-time AI Call Streaming Logic ---
+let ws = null;
+let mediaRecorder = null;
+let audioContext = null;
+let transcriptText = '';
+
+function appendTranscript(text) {
+  transcriptText += text + ' ';
+  document.getElementById('transcriptDisplay').textContent = transcriptText;
+}
+
 document.addEventListener('DOMContentLoaded', () => {
   loadContacts();
 
@@ -88,5 +99,84 @@ document.addEventListener('DOMContentLoaded', () => {
       displayContacts([]);
       document.getElementById('statusMsg').textContent = 'Contact data cleared.';
     });
+  });
+
+  document.getElementById('startCallBtn').addEventListener('click', async () => {
+    document.getElementById('statusMsg').textContent = 'Starting call...';
+    transcriptText = '';
+    document.getElementById('transcriptDisplay').textContent = '';
+    document.getElementById('startCallBtn').disabled = true;
+    document.getElementById('stopCallBtn').disabled = false;
+
+    // Get script from textarea
+    const script = document.getElementById('callScript').value.trim();
+    if (!script) {
+      document.getElementById('statusMsg').textContent = 'Please enter a call script.';
+      document.getElementById('startCallBtn').disabled = false;
+      document.getElementById('stopCallBtn').disabled = true;
+      return;
+    }
+
+    // Generate a random session ID for demo
+    const sessionId = Math.random().toString(36).substring(2, 12);
+    ws = new WebSocket(`ws://127.0.0.1:8000/ws/call-session/${sessionId}/`);
+    ws.binaryType = 'arraybuffer';
+
+    ws.onopen = () => {
+      // Send the script as the first message
+      ws.send(JSON.stringify({ type: 'script', script }));
+      document.getElementById('statusMsg').textContent = 'Call started. Speak now!';
+    };
+
+    ws.onmessage = (event) => {
+      if (typeof event.data === 'string') {
+        // Assume transcript text
+        appendTranscript(event.data);
+      } else {
+        // Play received audio chunk
+        if (!audioContext) audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        event.data.arrayBuffer().then((buf) => {
+          audioContext.decodeAudioData(buf, (buffer) => {
+            const source = audioContext.createBufferSource();
+            source.buffer = buffer;
+            source.connect(audioContext.destination);
+            source.start(0);
+          });
+        });
+      }
+    };
+
+    ws.onerror = (e) => {
+      document.getElementById('statusMsg').textContent = 'WebSocket error.';
+      document.getElementById('startCallBtn').disabled = false;
+      document.getElementById('stopCallBtn').disabled = true;
+    };
+
+    ws.onclose = () => {
+      document.getElementById('statusMsg').textContent = 'Call ended.';
+      document.getElementById('startCallBtn').disabled = false;
+      document.getElementById('stopCallBtn').disabled = true;
+      if (mediaRecorder) mediaRecorder.stop();
+      mediaRecorder = null;
+      ws = null;
+    };
+
+    // Start audio recording and send chunks
+    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    mediaRecorder = new MediaRecorder(stream, { mimeType: 'audio/webm' });
+    mediaRecorder.ondataavailable = (e) => {
+      if (e.data.size > 0 && ws && ws.readyState === WebSocket.OPEN) {
+        e.data.arrayBuffer().then((buf) => ws.send(buf));
+      }
+    };
+    mediaRecorder.start(250); // Send every 250ms
+  });
+
+  document.getElementById('stopCallBtn').addEventListener('click', () => {
+    if (mediaRecorder) mediaRecorder.stop();
+    if (ws) ws.close();
+    document.getElementById('startCallBtn').disabled = false;
+    document.getElementById('stopCallBtn').disabled = true;
+    document.getElementById('statusMsg').textContent = 'Call stopped.';
   });
 }); 

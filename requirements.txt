@@ -1,0 +1,7 @@
+django
+djangorestframework
+channels
+google-cloud-speech
+google-cloud-texttospeech
+requests
+pydub 
