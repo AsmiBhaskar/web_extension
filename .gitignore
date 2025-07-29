@@ -1,0 +1,37 @@
+# Python/Django
+__pycache__/
+*.py[cod]
+*.sqlite3
+*.log
+*.pot
+*.pyc
+*.pyo
+*.pyd
+*.db
+*.DS_Store
+*.env
+.env
+venv/
+env/
+ENV/
+*.egg-info/
+*.egg
+*.bak
+*.swp
+*.swo
+.idea/
+.vscode/
+# Node/Chrome Extension
+node_modules/
+*.log
+*.env
+.DS_Store
+# OS
+Thumbs.db
+.DS_Store
+# Misc
+*.bak
+*.tmp
+*.orig
+# VSCode
+.vscode/

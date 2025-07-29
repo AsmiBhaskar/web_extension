@@ -1,0 +1,1 @@
+// Empty background script for AI caller extension 

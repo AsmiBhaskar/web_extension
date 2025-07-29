@@ -1,0 +1,32 @@
+Functions and Classes in AI Caller Project
+
+chrome_extension/popup.js
+- function displayContacts(contacts): Displays all grouped contacts in a table in the popup.
+- function loadContacts(): Loads contacts from chrome.storage.local and displays them.
+
+backend/core/models.py
+- class Contact(models.Model): Stores name, email, phone for a contact.
+  - def __str__(self): String representation of Contact.
+- class CallScript(models.Model): Stores a call script linked to a contact.
+  - def __str__(self): String representation of CallScript.
+- class CallLog(models.Model): Stores a call log linked to a contact and script.
+  - def __str__(self): String representation of CallLog.
+
+backend/core/serializers.py
+- class ContactSerializer(serializers.ModelSerializer): Serializer for Contact model.
+- class CallScriptSerializer(serializers.ModelSerializer): Serializer for CallScript model.
+- class CallLogSerializer(serializers.ModelSerializer): Serializer for CallLog model.
+
+backend/core/views.py
+- class ContactViewSet(viewsets.ModelViewSet): API CRUD for Contact.
+- class CallScriptViewSet(viewsets.ModelViewSet): API CRUD for CallScript.
+- class CallLogViewSet(viewsets.ModelViewSet): API CRUD for CallLog.
+
+backend/core/apps.py
+- class CoreConfig(AppConfig): Django app config for 'core'.
+
+backend/manage.py
+- def main(): Django's entry point for management commands.
+
+backend/core/migrations/0001_initial.py
+- class Migration(migrations.Migration): Initial migration for core app. 
